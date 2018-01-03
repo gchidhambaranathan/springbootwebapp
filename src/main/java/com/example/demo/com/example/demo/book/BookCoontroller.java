@@ -1,16 +1,15 @@
 package com.example.demo.com.example.demo.book;
 
 
+import com.example.demo.error.ErrorMessage;
+import com.example.demo.exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.Link;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 import java.util.List;
@@ -21,8 +20,8 @@ public class BookCoontroller {
     @Autowired
     BookService bookService;
 
-    @RequestMapping(value = "/books", method = RequestMethod.GET)
-    public HttpEntity<List<Book>> getBooks(){
+    @RequestMapping(value = "/books", method = RequestMethod.GET,produces = {"application/json", "application/xml"})
+    public ResponseEntity<List<Book>> getBooks(){
         List<Book> books = bookService.getBooks();
         books.stream().forEach(BookCoontroller::addResource);
         return new ResponseEntity<List<Book>>(bookService.getBooks(), HttpStatus.OK);
@@ -35,8 +34,11 @@ public class BookCoontroller {
 
 
     @RequestMapping(value = "/books/{id}", method = RequestMethod.GET)
-    public HttpEntity<Book> getBook(@PathVariable long id) {
+    public ResponseEntity<Book> getBook(@PathVariable long id) {
         Book book = bookService.getBook(id);
+        if(book == null){
+            throw new EntityNotFoundException(id);
+        }
         addResource(book);
         return new ResponseEntity<Book>(book, HttpStatus.OK);
     }
@@ -54,4 +56,17 @@ public class BookCoontroller {
     public static void addResource(Book book){
         book.add(linkTo(methodOn(BookCoontroller.class).getBook(book.getUnid())).withSelfRel());
     }
+
+
+   /* @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorMessage> handleException(HttpServletRequest req, EntityNotFoundException e){
+        System.out.println("Called...");
+        ErrorMessage errorMessage = new ErrorMessage();
+        errorMessage.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        errorMessage.setMessage(e.getMessage());
+        errorMessage.setId(e.getId());
+        errorMessage.setUrl(req.getRequestURI());
+        return new ResponseEntity(errorMessage,HttpStatus.INTERNAL_SERVER_ERROR);
+    }*/
+
 }
