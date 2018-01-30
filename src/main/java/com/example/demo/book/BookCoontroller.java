@@ -1,14 +1,11 @@
-package com.example.demo.com.example.demo.book;
+package com.example.demo.book;
 
 
-import com.example.demo.error.ErrorMessage;
 import com.example.demo.exception.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
@@ -20,20 +17,20 @@ public class BookCoontroller {
     @Autowired
     BookService bookService;
 
-    @RequestMapping(value = "/books", method = RequestMethod.GET,produces = {"application/json", "application/xml"})
+    @GetMapping(value = "/books")
     public ResponseEntity<List<Book>> getBooks(){
         List<Book> books = bookService.getBooks();
         books.stream().forEach(BookCoontroller::addResource);
         return new ResponseEntity<List<Book>>(bookService.getBooks(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/books", method = RequestMethod.POST)
+    @PostMapping(value = "/books")
     public void addBook(@RequestBody Book book){
         bookService.addBook(book);
     }
 
 
-    @RequestMapping(value = "/books/{id}", method = RequestMethod.GET)
+    @GetMapping(value = "/books/{id}")
     public ResponseEntity<Book> getBook(@PathVariable long id) {
         Book book = bookService.getBook(id);
         if(book == null){
@@ -43,12 +40,12 @@ public class BookCoontroller {
         return new ResponseEntity<Book>(book, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/books/{id}", method = RequestMethod.PUT)
+    @PutMapping(value = "/books/{id}")
     public void updateBook(@RequestBody Book book, @PathVariable long id) {
          bookService.updateBook(book);
     }
 
-    @RequestMapping(value = "/books/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/books/{id}")
     public void deleteBook(@PathVariable long id) {
         bookService.deleteBook(id);
     }
